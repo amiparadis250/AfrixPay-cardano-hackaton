@@ -1,156 +1,250 @@
 'use client'
 
-import { useState } from 'react'
-import { AFRICAN_CURRENCIES } from '@/lib/currency'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sidebar } from './Sidebar';
+import { ConfirmationModal } from './ConfirmationModal';
+import { ArrowRight, Info, Check } from 'lucide-react';
 
-interface SendMoneyProps {
-  userToken: string
-  userCountry: string
-}
+export function SendMoney() {
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    amount: '',
+    currency: 'KES',
+    recipientPhone: '',
+    recipientCurrency: 'RWF',
+  });
 
-export default function SendMoney({ userToken, userCountry }: SendMoneyProps) {
-  const [receiverPhone, setReceiverPhone] = useState('')
-  const [amount, setAmount] = useState('')
-  const [senderCurrency, setSenderCurrency] = useState('RWF')
-  const [receiverCurrency, setReceiverCurrency] = useState('KES')
-  const [conversion, setConversion] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
-  const [sending, setSending] = useState(false)
+  const currencies = [
+    { code: 'KES', name: 'Kenyan Shilling', flag: '🇰🇪' },
+    { code: 'RWF', name: 'Rwandan Franc', flag: '🇷🇼' },
+    { code: 'UGX', name: 'Ugandan Shilling', flag: '🇺🇬' },
+    { code: 'TZS', name: 'Tanzanian Shilling', flag: '🇹🇿' },
+    { code: 'NGN', name: 'Nigerian Naira', flag: '🇳🇬' },
+  ];
 
-  const handleConvert = async () => {
-    if (!amount || parseFloat(amount) <= 0) return
-    
-    setLoading(true)
-    try {
-      const response = await fetch('/api/currencies/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          fromCurrency: senderCurrency,
-          toCurrency: receiverCurrency,
-        }),
-      })
-      const data = await response.json()
-      setConversion(data)
-    } catch (error) {
-      console.error('Conversion failed:', error)
-    }
-    setLoading(false)
-  }
+  const exchangeRate = 7.85; // KES to RWF
+  const feePercentage = 0.008; // 0.8%
+  
+  const amount = parseFloat(formData.amount) || 0;
+  const fee = amount * feePercentage;
+  const amountReceived = amount * exchangeRate;
 
-  const handleSend = async () => {
-    if (!receiverPhone || !conversion) return
-    
-    setSending(true)
-    try {
-      const response = await fetch('/api/transactions/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`,
-        },
-        body: JSON.stringify({
-          receiverPhone,
-          amount: parseFloat(amount),
-          senderCurrency,
-          receiverCurrency,
-        }),
-      })
-      
-      if (response.ok) {
-        alert('Transaction sent successfully!')
-        setReceiverPhone('')
-        setAmount('')
-        setConversion(null)
-      } else {
-        const error = await response.json()
-        alert(`Transaction failed: ${error.error}`)
-      }
-    } catch (error) {
-      alert('Transaction failed')
-    }
-    setSending(false)
-  }
+  const handleConfirm = () => {
+    // Store transaction data in sessionStorage for Next.js
+    sessionStorage.setItem('transactionData', JSON.stringify({
+      amount: formData.amount,
+      currency: formData.currency,
+      recipientPhone: formData.recipientPhone,
+      recipientCurrency: formData.recipientCurrency,
+      amountReceived: amountReceived.toFixed(2),
+      fee: fee.toFixed(2),
+    }));
+    router.push('/success');
+  };
+
+  const recipientDetected = formData.recipientPhone.length >= 10;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Send Money</h2>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
       
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">Receiver Phone Number</label>
-          <input
-            type="tel"
-            value={receiverPhone}
-            onChange={(e) => setReceiverPhone(e.target.value)}
-            className="w-full p-3 border rounded-lg"
-            placeholder="+250788123456"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">From Currency</label>
-            <select
-              value={senderCurrency}
-              onChange={(e) => setSenderCurrency(e.target.value)}
-              className="w-full p-3 border rounded-lg"
-            >
-              {Object.entries(AFRICAN_CURRENCIES).map(([code, info]) => (
-                <option key={code} value={code}>
-                  {code} - {info.name}
-                </option>
-              ))}
-            </select>
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-6xl mx-auto p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl text-gray-900 mb-2">Send Money</h1>
+            <p className="text-gray-600">Send money instantly across Africa</p>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">To Currency</label>
-            <select
-              value={receiverCurrency}
-              onChange={(e) => setReceiverCurrency(e.target.value)}
-              className="w-full p-3 border rounded-lg"
-            >
-              {Object.entries(AFRICAN_CURRENCIES).map(([code, info]) => (
-                <option key={code} value={code}>
-                  {code} - {info.name}
-                </option>
-              ))}
-            </select>
+
+          <div className="grid grid-cols-3 gap-8">
+            {/* Form */}
+            <div className="col-span-2">
+              <div className="bg-white rounded-2xl border border-gray-200 p-8">
+                <form className="space-y-6">
+                  {/* Amount */}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      You send
+                    </label>
+                    <div className="flex gap-3">
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.amount}
+                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                        className="flex-1 px-4 py-4 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      />
+                      <select
+                        value={formData.currency}
+                        onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                        aria-label="Select sending currency"
+                        className="px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      >
+                        {currencies.map((currency) => (
+                          <option key={currency.code} value={currency.code}>
+                            {currency.flag} {currency.code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Exchange Rate */}
+                  {amount > 0 && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-700">Exchange Rate</span>
+                        <span className="text-sm text-[#0052FF]">
+                          1 {formData.currency} = {exchangeRate} {formData.recipientCurrency}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Info className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs text-gray-600">
+                          Rate locked for 10 minutes
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recipient */}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Recipient phone number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="+250 700 000 000"
+                      value={formData.recipientPhone}
+                      onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
+                      className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Auto-detected Recipient */}
+                  {recipientDetected && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-900">Sarah Nkunda</div>
+                        <div className="text-xs text-gray-600">MTN Mobile Money • Rwanda</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recipient receives */}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Recipient receives
+                    </label>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={amount > 0 ? amountReceived.toFixed(2) : '0.00'}
+                        readOnly
+                        title="Recipient receives amount"
+                        className="flex-1 px-4 py-4 text-2xl border border-gray-300 rounded-lg bg-gray-50"
+                      />
+                      <select
+                        value={formData.recipientCurrency}
+                        onChange={(e) =>
+                          setFormData({ ...formData, recipientCurrency: e.target.value })
+                        }
+                        aria-label="Select recipient currency"
+                        className="px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      >
+                        {currencies.map((currency) => (
+                          <option key={currency.code} value={currency.code}>
+                            {currency.flag} {currency.code}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    disabled={!amount || !recipientDetected}
+                    className="w-full py-4 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Send Now
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Summary Panel */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg text-gray-900 mb-4">Transfer Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">Amount</span>
+                    <span className="text-sm text-gray-900">
+                      {amount > 0 ? `${amount.toFixed(2)} ${formData.currency}` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">Fee (0.8%)</span>
+                    <span className="text-sm text-gray-900">
+                      {amount > 0 ? `${fee.toFixed(2)} ${formData.currency}` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">Exchange rate</span>
+                    <span className="text-sm text-gray-900">
+                      1:{exchangeRate}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-3 mt-2">
+                    <span className="text-gray-900">Total to pay</span>
+                    <span className="text-xl text-[#0052FF]">
+                      {amount > 0 ? `${(amount + fee).toFixed(2)} ${formData.currency}` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Card */}
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
+                <h4 className="text-sm text-gray-900 mb-2">Why AfriXPay?</h4>
+                <ul className="space-y-2 text-xs text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#0052FF] flex-shrink-0 mt-0.5" />
+                    <span>Instant settlement via blockchain</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#0052FF] flex-shrink-0 mt-0.5" />
+                    <span>Up to 90% cheaper than banks</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#0052FF] flex-shrink-0 mt-0.5" />
+                    <span>Secure and transparent transfers</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Amount</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onBlur={handleConvert}
-            className="w-full p-3 border rounded-lg"
-            placeholder="0.00"
-          />
-        </div>
-
-        {conversion && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Conversion Details</h3>
-            <p>Send: {conversion.originalAmount} {conversion.fromCurrency}</p>
-            <p>Receive: {conversion.convertedAmount} {conversion.toCurrency}</p>
-            <p>Exchange Rate: 1 {conversion.fromCurrency} = {conversion.exchangeRate.toFixed(4)} {conversion.toCurrency}</p>
-            <p>Fee: {conversion.fee} {conversion.fromCurrency}</p>
-          </div>
-        )}
-
-        <button
-          onClick={handleSend}
-          disabled={!conversion || !receiverPhone || sending}
-          className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold disabled:bg-gray-400"
-        >
-          {sending ? 'Sending...' : 'Send Money'}
-        </button>
       </div>
+
+      <ConfirmationModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirm}
+        recipient="Sarah Nkunda"
+        country="Rwanda"
+        amountSent={`${amount.toFixed(2)} ${formData.currency}`}
+        amountReceived={`${amountReceived.toFixed(2)} ${formData.recipientCurrency}`}
+        exchangeRate={`1 ${formData.currency} = ${exchangeRate} ${formData.recipientCurrency}`}
+        fee={`${fee.toFixed(2)} ${formData.currency}`}
+      />
     </div>
-  )
+  );
 }

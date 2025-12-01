@@ -1,202 +1,91 @@
-# AfriXPay - Cross-Border Remittance Platform
+# Blockchain Remittance Platform UI (Next.js App Router)
 
-A Next.js-based MVP for cross-border money transfers across Africa with simulated Cardano blockchain integration.
+This is a Next.js application for a Blockchain Remittance Platform UI, converted from the original Vite React project to use Next.js App Router.
 
 ## Features
 
-- 📱 Phone number-based user registration
-- 🔐 Optional KYC verification system
-- 💱 Real-time currency conversion between African currencies
-- 🌍 Support for RWF, KES, NGN, GHS, UGX, TZS, ZAR
-- ⛓️ Simulated Cardano blockchain transfers
-- 📊 Transaction history and status tracking
-- 💳 Fee calculation and balance management
+- **Next.js 15** with App Router
+- **TypeScript** support
+- **Tailwind CSS** for styling
+- **Radix UI** components
+- **Lucide React** icons
+- Responsive design
+- Modern blockchain remittance interface
 
-## Tech Stack
+## Getting Started
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT tokens
-- **Blockchain**: Cardano simulation (ready for real integration)
+### Prerequisites
 
-## Project Structure
-
-```
-afrixpay/
-├── app/
-│   ├── api/
-│   │   ├── auth/register/          # User registration
-│   │   ├── currencies/convert/     # Currency conversion
-│   │   ├── transactions/
-│   │   │   ├── send/              # Send money
-│   │   │   └── history/           # Transaction history
-│   │   └── users/profile/         # User profile
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx                   # Main dashboard
-├── components/
-│   ├── RegisterForm.tsx           # User registration form
-│   ├── SendMoney.tsx             # Money transfer interface
-│   └── TransactionHistory.tsx     # Transaction list
-├── lib/
-│   ├── auth.ts                   # JWT authentication
-│   ├── cardano.ts                # Blockchain simulation
-│   ├── currency.ts               # FX conversion logic
-│   └── prisma.ts                 # Database client
-├── prisma/
-│   ├── schema.prisma             # Database schema
-│   └── seed.ts                   # Initial data seeding
-└── .env.local                    # Environment variables
-```
-
-## Database Schema
-
-### Users
-- Phone number (unique identifier)
-- Personal information (optional)
-- KYC status and verification
-- Account balance
-
-### Transactions
-- Sender/receiver relationship
-- Multi-currency amounts
-- Exchange rates and fees
-- Cardano transaction hashes
-- Status tracking
-
-### Currencies
-- Supported African currencies
-- Real-time exchange rates
-- Country mappings
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-
-### Currency Operations
-- `POST /api/currencies/convert` - Get conversion rates
-
-### Transactions
-- `POST /api/transactions/send` - Send money
-- `GET /api/transactions/history` - Transaction history
-
-### User Management
-- `GET /api/users/profile` - User profile
-
-## Setup Instructions
-
-### 1. Prerequisites
-- Node.js 18+
-- PostgreSQL database
+- Node.js 18+ 
 - npm or yarn
 
-### 2. Installation
+### Installation
+
+1. Install dependencies:
 ```bash
-# Clone and install dependencies
 npm install
-
-# Install additional dependency
-npm install tsx
 ```
 
-### 3. Database Setup
-```bash
-# Set up your PostgreSQL database
-# Update DATABASE_URL in .env.local
-
-# Generate Prisma client
-npm run db:generate
-
-# Push schema to database
-npm run db:push
-
-# Seed initial data
-npm run db:seed
-```
-
-### 4. Environment Variables
-Update `.env.local`:
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/afrixpay"
-JWT_SECRET="your-super-secret-jwt-key-change-in-production"
-CARDANO_API_KEY="your-cardano-api-key"
-EXCHANGE_RATE_API_KEY="your-exchange-rate-api-key"
-```
-
-### 5. Run Development Server
+2. Run the development server:
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see the application.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Usage Flow
+### Build for Production
 
-1. **Registration**: Users register with phone number and basic info
-2. **Send Money**: Select recipient, amount, and currencies
-3. **Conversion**: Real-time FX rates with fee calculation
-4. **Transfer**: Simulated Cardano blockchain transaction
-5. **Tracking**: Monitor transaction status and history
+```bash
+npm run build
+npm start
+```
 
-## Supported Currencies
+## Project Structure
 
-| Currency | Country | Code |
-|----------|---------|------|
-| Rwandan Franc | Rwanda | RWF |
-| Kenyan Shilling | Kenya | KES |
-| Nigerian Naira | Nigeria | NGN |
-| Ghanaian Cedi | Ghana | GHS |
-| Ugandan Shilling | Uganda | UGX |
-| Tanzanian Shilling | Tanzania | TZS |
-| South African Rand | South Africa | ZAR |
+```
+├── app/                    # Next.js App Router pages
+│   ├── auth/              # Authentication page
+│   ├── dashboard/         # Dashboard page  
+│   ├── send/              # Send money page
+│   ├── success/           # Transaction success page
+│   ├── transactions/      # Transaction history page
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Home page
+│   └── globals.css        # Global styles
+├── components/            # React components
+│   ├── ui/               # Reusable UI components
+│   ├── figma/            # Figma-specific components
+│   └── *.tsx             # Page components
+├── next.config.js        # Next.js configuration
+├── tailwind.config.js    # Tailwind CSS configuration
+└── tsconfig.json         # TypeScript configuration
+```
 
-## Cardano Integration
+## Key Changes from Vite to Next.js
 
-Currently simulated for MVP. Ready for real integration:
-- Mock transaction hashes
-- 95% success rate simulation
-- 2-second network delay simulation
-- Address generation for users
+1. **Routing**: Converted from React Router to Next.js App Router
+2. **Navigation**: Updated from `useNavigate` to `useRouter` and `usePathname`
+3. **State Management**: Using `sessionStorage` for transaction data instead of router state
+4. **Client Components**: Added `'use client'` directive where needed
+5. **Configuration**: Added Next.js, PostCSS, and Tailwind configurations
 
-## Security Features
+## Available Scripts
 
-- JWT-based authentication
-- Input validation with Zod
-- SQL injection protection via Prisma
-- Phone number uniqueness enforcement
-- Transaction status tracking
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
 
-## Scaling Considerations
+## Technologies Used
 
-### For Production:
-1. **Real Cardano Integration**: Replace simulation with actual blockchain calls
-2. **Live Exchange Rates**: Integrate with forex APIs
-3. **KYC Verification**: Add document upload and verification
-4. **Mobile App**: React Native implementation
-5. **Payment Gateways**: Local payment method integration
-6. **Compliance**: Regulatory compliance for each country
-7. **Monitoring**: Transaction monitoring and fraud detection
+- Next.js 15
+- React 18
+- TypeScript
+- Tailwind CSS
+- Radix UI
+- Lucide React
+- PostCSS
+- Autoprefixer
 
-### Performance:
-- Database indexing on phone numbers and transaction IDs
-- Caching for exchange rates
-- Background job processing for blockchain transactions
-- CDN for static assets
+## Original Project
 
-## Development Notes
-
-This is an MVP built for hackathon demonstration. Key areas for production enhancement:
-
-- Real blockchain integration
-- Enhanced security measures
-- Comprehensive error handling
-- Mobile responsiveness improvements
-- Advanced transaction monitoring
-- Multi-language support
-- Customer support integration
-
-## License
-
-MIT License - Built for AfriXPay hackathon project.
+The original Figma design is available at: https://www.figma.com/design/yPngPnY3dZ5IYDrWhQa3ua/Blockchain-Remittance-Platform-UI--Community-
