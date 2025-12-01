@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Send, Zap, Shield, Smartphone, CheckCircle2, ArrowRight } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+
 
 export function LandingPage() {
   const router = useRouter();
@@ -103,11 +103,12 @@ export function LandingPage() {
             </div>
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1543234723-b70b104d8e25?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2ElMjBtYXAlMjBkaWdpdGFsfGVufDF8fHx8MTc2NDU3NTA5NXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                  alt="Africa digital network"
-                  className="w-full h-[400px] object-cover"
-                />
+                <div className="w-full h-[400px] bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="text-6xl mb-4">🌍</div>
+                    <div className="text-xl">Africa Connected</div>
+                  </div>
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0052FF]/80 to-transparent" />
               </div>
               {/* Floating currency indicators */}
