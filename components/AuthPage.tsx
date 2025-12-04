@@ -55,8 +55,10 @@ export function AuthPage() {
         result = await login({ email: formData.email, password: formData.password }).unwrap();
       }
 
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+      }
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.data?.error || err.message || 'Authentication failed');

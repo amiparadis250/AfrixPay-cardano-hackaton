@@ -12,6 +12,8 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
@@ -44,7 +46,7 @@ export function Dashboard() {
     }
   };
 
-  if (loading) {
+  if (loading || typeof window === 'undefined') {
     return (
       <div className="flex h-screen bg-gray-50 items-center justify-center">
         <div className="text-gray-600">Loading...</div>
