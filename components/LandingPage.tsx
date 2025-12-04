@@ -31,19 +31,19 @@ export function LandingPage() {
   ];
 
   const partners = [
-    'Flutterwave',
-    'Paystack',
+    'AirteL Money',
+    'Orange Telecom',
     'M-Pesa',
     'MTN Mobile Money',
     'Airtel Money',
-    'Chipper Cash',
+    
   ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
+        <div className="flex items-center justify-between px-8 py-6 mx-auto max-w-7xl">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#0052FF] to-[#0036C8] rounded-lg flex items-center justify-center">
               <Send className="w-6 h-6 text-white" />
@@ -51,15 +51,15 @@ export function LandingPage() {
             <span className="text-2xl text-gray-900">AfriXPay</span>
           </div>
           <nav className="flex items-center gap-8">
-            <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <a href="#features" className="text-gray-600 transition-colors hover:text-gray-900">
               Features
             </a>
-            <a href="#partners" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <a href="#partners" className="text-gray-600 transition-colors hover:text-gray-900">
               Partners
             </a>
             <button
               onClick={() => router.push('/auth')}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-gray-600 transition-colors hover:text-gray-900"
             >
               Sign In
             </button>
@@ -76,13 +76,13 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0052FF] via-[#0036C8] to-[#002380]" />
-        <div className="relative max-w-7xl mx-auto px-8 py-32">
-          <div className="grid grid-cols-2 gap-16 items-center">
+        <div className="relative px-8 py-32 mx-auto max-w-7xl">
+          <div className="grid items-center grid-cols-2 gap-16">
             <div>
-              <h1 className="text-6xl text-white mb-6">
+              <h1 className="mb-6 text-6xl text-white">
                 Borderless Payments for Africa
               </h1>
-              <p className="text-xl text-blue-100 mb-10">
+              <p className="mb-10 text-xl text-blue-100">
                 Send money instantly across Africa at ultra-low fees
               </p>
               <div className="flex items-center gap-4">
@@ -95,25 +95,25 @@ export function LandingPage() {
                 </button>
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="px-8 py-4 text-white transition-colors bg-transparent border-2 border-white rounded-lg hover:bg-white/10"
                 >
                   Try Demo
                 </button>
               </div>
             </div>
             <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative overflow-hidden shadow-2xl rounded-2xl">
                 <div className="w-full h-[400px] bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <div className="text-6xl mb-4">🌍</div>
+                  <div className="text-center text-white">
+                    <div className="mb-4 text-6xl">🌍</div>
                     <div className="text-xl">Africa Connected</div>
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0052FF]/80 to-transparent" />
               </div>
               {/* Floating currency indicators */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
+              <div className="absolute flex items-center gap-2 px-4 py-3 bg-white shadow-lg -top-4 -right-4 rounded-xl">
+                <div className="flex items-center justify-center w-8 h-8 text-white bg-green-500 rounded-full">
                   ✓
                 </div>
                 <div>
@@ -128,9 +128,9 @@ export function LandingPage() {
 
       {/* Features Section */}
       <section id="features" className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl text-gray-900 mb-4">Why Choose AfriXPay</h2>
+        <div className="px-8 mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl text-gray-900">Why Choose AfriXPay</h2>
             <p className="text-xl text-gray-600">
               The fastest, most affordable way to send money across Africa
             </p>
@@ -141,12 +141,12 @@ export function LandingPage() {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+                  className="p-8 transition-shadow bg-white border border-gray-100 shadow-sm rounded-xl hover:shadow-md"
                 >
-                  <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-6">
+                  <div className="flex items-center justify-center w-12 h-12 mb-6 rounded-lg bg-blue-50">
                     <Icon className="w-6 h-6 text-[#0052FF]" />
                   </div>
-                  <h3 className="text-xl text-gray-900 mb-3">{feature.title}</h3>
+                  <h3 className="mb-3 text-xl text-gray-900">{feature.title}</h3>
                   <p className="text-gray-600">{feature.description}</p>
                 </div>
               );
@@ -157,15 +157,15 @@ export function LandingPage() {
 
       {/* Partners Section */}
       <section id="partners" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="text-center mb-12">
-            <p className="text-gray-500 mb-8">Trusted by leading financial partners</p>
+        <div className="px-8 mx-auto max-w-7xl">
+          <div className="mb-12 text-center">
+            <p className="mb-8 text-gray-500">Trusted by leading financial partners</p>
           </div>
-          <div className="grid grid-cols-6 gap-8 items-center">
+          <div className="grid items-center grid-cols-6 gap-8">
             {partners.map((partner, index) => (
               <div
                 key={index}
-                className="flex items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-100"
+                className="flex items-center justify-center p-6 border border-gray-100 rounded-lg bg-gray-50"
               >
                 <span className="text-gray-400">{partner}</span>
               </div>
@@ -175,8 +175,8 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-8">
+      <footer className="py-12 text-white bg-gray-900">
+        <div className="px-8 mx-auto max-w-7xl">
           <div className="grid grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
@@ -185,36 +185,36 @@ export function LandingPage() {
                 </div>
                 <span className="text-xl">AfriXPay</span>
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm text-gray-400">
                 Borderless payments for Africa
               </p>
             </div>
             <div>
               <h4 className="mb-4 text-sm">Product</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Features</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Pricing</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">API</a></li>
               </ul>
             </div>
             <div>
               <h4 className="mb-4 text-sm">Company</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">About</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Careers</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Contact</a></li>
               </ul>
             </div>
             <div>
               <h4 className="mb-4 text-sm">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Privacy</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Terms</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Security</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-sm text-gray-400 text-center">
+          <div className="pt-8 text-sm text-center text-gray-400 border-t border-gray-800">
             © 2025 AfriXPay. All rights reserved.
           </div>
         </div>
