@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wallet       Wallet?
+  sentTransactions     Transaction[] @relation("SenderTransactions")
+  receivedTransactions Transaction[] @relation("ReceiverTransactions")
+
+  @@map("users")
+}
+
+model Wallet {
+  id      String @id @default(cuid())
+  userId  String @unique
+  balance Decimal @default(0)
+  currency String @default("USD")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("wallets")
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  senderId        String
+  receiverEmail   String
+  receiverId      String?
+  amount          Decimal
+  currency        String            @default("USD")
+  exchangeRate    Decimal?
+  fee             Decimal           @default(0)
+  status          TransactionStatus @default(PENDING)
+  transactionHash String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  sender   User  @relation("SenderTransactions", fields: [senderId], references: [id])
+  receiver User? @relation("ReceiverTransactions", fields: [receiverId], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

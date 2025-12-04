@@ -3,30 +3,64 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, Globe, Shield, Zap } from 'lucide-react';
+import { useRegisterMutation, useLoginMutation } from '@/lib/api/apiSlice';
 
 export function AuthPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(true);
+  const [register, { isLoading: isRegistering }] = useRegisterMutation();
+  const [login, { isLoading: isLoggingIn }] = useLoginMutation();
+  const [error, setError] = useState('');
+  const loading = isRegistering || isLoggingIn;
   const [formData, setFormData] = useState({
-    phone: '',
+    email: '',
     password: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
     country: '',
   });
 
-  const countries = [
-    'Kenya',
-    'Rwanda',
-    'Uganda',
-    'Tanzania',
-    'Nigeria',
-    'Ghana',
-    'South Africa',
-    'Ethiopia',
-  ];
+  const countryCurrencyMap: { [key: string]: string } = {
+    'Algeria': 'DZD', 'Angola': 'AOA', 'Benin': 'XOF', 'Botswana': 'BWP', 'Burkina Faso': 'XOF',
+    'Burundi': 'BIF', 'Cabo Verde': 'CVE', 'Cameroon': 'XAF', 'Central African Republic': 'XAF',
+    'Chad': 'XAF', 'Comoros': 'KMF', 'Congo': 'XAF', 'Democratic Republic of the Congo': 'CDF',
+    'Djibouti': 'DJF', 'Egypt': 'EGP', 'Equatorial Guinea': 'XAF', 'Eritrea': 'ERN', 'Eswatini': 'SZL',
+    'Ethiopia': 'ETB', 'Gabon': 'XAF', 'Gambia': 'GMD', 'Ghana': 'GHS', 'Guinea': 'GNF',
+    'Guinea-Bissau': 'XOF', 'Ivory Coast': 'XOF', 'Kenya': 'KES', 'Lesotho': 'LSL', 'Liberia': 'LRD',
+    'Libya': 'LYD', 'Madagascar': 'MGA', 'Malawi': 'MWK', 'Mali': 'XOF', 'Mauritania': 'MRU',
+    'Mauritius': 'MUR', 'Morocco': 'MAD', 'Mozambique': 'MZN', 'Namibia': 'NAD', 'Niger': 'XOF',
+    'Nigeria': 'NGN', 'Rwanda': 'RWF', 'Sao Tome and Principe': 'STN', 'Senegal': 'XOF',
+    'Seychelles': 'SCR', 'Sierra Leone': 'SLL', 'Somalia': 'SOS', 'South Africa': 'ZAR',
+    'South Sudan': 'SSP', 'Sudan': 'SDG', 'Tanzania': 'TZS', 'Togo': 'XOF', 'Tunisia': 'TND',
+    'Uganda': 'UGX', 'Zambia': 'ZMW', 'Zimbabwe': 'ZWL'
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const countries = Object.keys(countryCurrencyMap);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    setError('');
+
+    try {
+      let result;
+      
+      if (isSignUp) {
+        const payload = {
+          ...formData,
+          currency: formData.country ? countryCurrencyMap[formData.country] : 'USD'
+        };
+        result = await register(payload).unwrap();
+      } else {
+        result = await login({ email: formData.email, password: formData.password }).unwrap();
+      }
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.data?.error || err.message || 'Authentication failed');
+    }
   };
 
   return (
@@ -104,42 +138,94 @@ export function AuthPage() {
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="phone" className="block text-sm text-gray-700 mb-2">
-                Phone Number
+              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">
+                Email Address
               </label>
               <input
-                id="phone"
-                type="tel"
-                placeholder="+254 700 000 000"
-                value={formData.phone}
-                onChange={(e: { target: { value: any; }; }) => setFormData({ ...formData, phone: e.target.value })}
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
                 required
               />
             </div>
 
             {isSignUp && (
-              <div>
-                <label htmlFor="country" className="block text-sm text-gray-700 mb-2">
-                  Country
-                </label>
-                <select
-                  id="country"
-                  value={formData.country}
-                  onChange={(e: { target: { value: any; }; }) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
-                  required
-                >
-                  <option value="">Select your country</option>
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm text-gray-700 mb-2">
+                      First Name
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      placeholder="John"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm text-gray-700 mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      placeholder="Doe"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    placeholder="+250 700 000 000"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="country" className="block text-sm text-gray-700 mb-2">
+                    Country
+                  </label>
+                  <select
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                  >
+                    <option value="">Select your country</option>
+                    {countries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
             )}
 
             <div>
@@ -151,7 +237,7 @@ export function AuthPage() {
                 type="password"
                 placeholder="••••••••"
                 value={formData.password}
-                onChange={(e: { target: { value: any; }; }) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
                 required
               />
@@ -171,9 +257,13 @@ export function AuthPage() {
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors"
+              disabled={loading}
+              className="w-full py-3.5 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {loading && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              )}
+              {loading ? '' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 

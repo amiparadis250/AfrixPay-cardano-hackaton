@@ -1,11 +1,56 @@
 'use client'
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Send, Download, RefreshCw, Banknote, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export function Dashboard() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [balance, setBalance] = useState('0.00');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (!userData || !token) {
+      router.push('/auth');
+      return;
+    }
+
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    
+    // Fetch wallet balance
+    fetchBalance(token);
+  }, [router]);
+
+  const fetchBalance = async (token: string) => {
+    try {
+      const response = await fetch('/api/wallet/balance', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   const recentTransactions = [
     {
@@ -55,7 +100,7 @@ export function Dashboard() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl text-gray-900 mb-2">Dashboard</h1>
-            <p className="text-gray-600">Welcome back, John</p>
+            <p className="text-gray-600">Welcome back, {user?.firstName || 'User'}</p>
           </div>
 
           {/* Wallet Balance Card */}
@@ -63,8 +108,8 @@ export function Dashboard() {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <p className="text-blue-100 mb-2">Total Balance</p>
-                <div className="text-5xl mb-1">$2,450.00</div>
-                <p className="text-blue-100">≈ 306,250 KES</p>
+                <div className="text-5xl mb-1">{user?.wallet?.currency || 'RWF'} {balance}</div>
+                <p className="text-blue-100">Wallet Balance</p>
               </div>
               <div className="bg-white/20 backdrop-blur px-4 py-2 rounded-lg flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import { StoreProvider } from '@/components/StoreProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Blockchain Remittance Platform',
-  description: 'A modern blockchain-based remittance platform',
+  title: 'AfriXPay - Blockchain Remittance Platform',
+  description: 'Send money across Africa with blockchain technology',
 }
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <StoreProvider>{children}</StoreProvider>
+      </body>
     </html>
   )
 }

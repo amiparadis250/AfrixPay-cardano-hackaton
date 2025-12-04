@@ -51,21 +51,21 @@ export function SendMoney() {
       <Sidebar />
       
       <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto p-8">
+        <div className="max-w-6xl p-8 mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">Send Money</h1>
+            <h1 className="mb-2 text-3xl text-gray-900">Send Money</h1>
             <p className="text-gray-600">Send money instantly across Africa</p>
           </div>
 
           <div className="grid grid-cols-3 gap-8">
-            {/* Form */}
+            {/* Form */}f
             <div className="col-span-2">
-              <div className="bg-white rounded-2xl border border-gray-200 p-8">
+              <div className="p-8 bg-white border border-gray-200 rounded-2xl">
                 <form className="space-y-6">
                   {/* Amount */}
                   <div>
-                    <label className="block text-sm text-gray-700 mb-2">
+                    <label className="block mb-2 text-sm text-gray-700">
                       You send
                     </label>
                     <div className="flex gap-3">
@@ -93,7 +93,7 @@ export function SendMoney() {
 
                   {/* Exchange Rate */}
                   {amount > 0 && (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <div className="p-4 border border-blue-100 bg-blue-50 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-700">Exchange Rate</span>
                         <span className="text-sm text-[#0052FF]">
@@ -111,7 +111,7 @@ export function SendMoney() {
 
                   {/* Recipient */}
                   <div>
-                    <label className="block text-sm text-gray-700 mb-2">
+                    <label className="block mb-2 text-sm text-gray-700">
                       Recipient phone number
                     </label>
                     <input
@@ -125,8 +125,8 @@ export function SendMoney() {
 
                   {/* Auto-detected Recipient */}
                   {recipientDetected && (
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-4 border border-green-200 bg-green-50 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full">
                         <Check className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
@@ -138,7 +138,7 @@ export function SendMoney() {
 
                   {/* Recipient receives */}
                   <div>
-                    <label className="block text-sm text-gray-700 mb-2">
+                    <label className="block mb-2 text-sm text-gray-700">
                       Recipient receives
                     </label>
                     <div className="flex gap-3">
@@ -181,8 +181,8 @@ export function SendMoney() {
 
             {/* Summary Panel */}
             <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 className="text-lg text-gray-900 mb-4">Transfer Summary</h3>
+              <div className="p-6 bg-white border border-gray-200 rounded-2xl">
+                <h3 className="mb-4 text-lg text-gray-900">Transfer Summary</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
                     <span className="text-sm text-gray-600">Amount</span>
@@ -212,8 +212,8 @@ export function SendMoney() {
               </div>
 
               {/* Info Card */}
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
-                <h4 className="text-sm text-gray-900 mb-2">Why AfriXPay?</h4>
+              <div className="p-6 border border-blue-100 bg-blue-50 rounded-xl">
+                <h4 className="mb-2 text-sm text-gray-900">Why AfriXPay?</h4>
                 <ul className="space-y-2 text-xs text-gray-700">
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-[#0052FF] flex-shrink-0 mt-0.5" />
