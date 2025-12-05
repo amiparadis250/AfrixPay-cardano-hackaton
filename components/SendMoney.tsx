@@ -9,7 +9,7 @@ import { ArrowRight, Info, Check, User } from 'lucide-react';
 export function SendMoney() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const [recipientInfo, setRecipientInfo] = useState(null);
+  const [recipientInfo, setRecipientInfo] = useState<{id: string, name: string, phone: string} | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
@@ -29,7 +29,7 @@ export function SendMoney() {
   const fee = amount * feePercentage;
   const amountReceived = amount - fee;
 
-  const lookupRecipient = async (address) => {
+  const lookupRecipient = async (address: string) => {
     if (!address || address.length < 10) {
       setRecipientInfo(null);
       return;
