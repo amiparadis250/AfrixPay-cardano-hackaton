@@ -1,22 +1,11 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { LayoutDashboard, Send, Wallet, Receipt, User, Settings, LogOut } from 'lucide-react';
 
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
-    }
-  }, []);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -69,17 +58,16 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center gap-3 px-4 py-3 mb-2">
           <div className="w-10 h-10 bg-gradient-to-br from-[#0052FF] to-[#0036C8] rounded-full flex items-center justify-center text-white">
-            {user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() : 'U'}
+            JD
           </div>
           <div className="flex-1">
-            <div className="text-sm text-gray-900">{user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'User'}</div>
-            <div className="text-xs text-gray-500">{user?.phoneNumber || 'No phone'}</div>
+            <div className="text-sm text-gray-900">John Doe</div>
+            <div className="text-xs text-gray-500">+254 700 000 000</div>
           </div>
         </div>
         <button
           onClick={() => {
             localStorage.removeItem('token')
-            localStorage.removeItem('user')
             router.push('/')
           }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
