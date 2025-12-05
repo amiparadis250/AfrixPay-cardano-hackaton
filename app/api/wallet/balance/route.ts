@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { verifyToken } from '@/lib/auth'
+import { getBalance } from '@/lib/cardano'
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    const { address } = await request.json()
+    
+    if (!address) {
+      return NextResponse.json(
+        { success: false, error: 'Address is required' },
+        { status: 400 }
+      )
     }
 
-    const decoded = verifyToken(token)
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
-    }
-
-    const wallet = await prisma.wallet.findUnique({
-      where: { userId: decoded.userId }
+    const balance = await getBalance(address)
+    
+    return NextResponse.json({
+      success: true,
+      data: balance
     })
-
-    if (!wallet) {
-      return NextResponse.json({ error: 'Wallet not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ balance: wallet.balance, currency: wallet.currency })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to get balance' }, { status: 500 })
+    console.error('Balance fetch error:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to fetch balance' 
+      },
+      { status: 500 }
+    )
   }
 }

@@ -13,7 +13,7 @@ model User {
   password  String
   firstName String
   lastName  String
-  phone     String?
+  phone     String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,6 +29,11 @@ model Wallet {
   userId  String @unique
   balance Decimal @default(0)
   currency String @default("USD")
+  
+  // Cardano wallet fields
+  cardanoAddress String?
+  cardanoMnemonic String?
+  cardanoPublicKey String?
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
