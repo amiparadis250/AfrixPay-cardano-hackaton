@@ -55,13 +55,20 @@ export function AuthPage() {
         result = await login({ email: formData.email, password: formData.password }).unwrap();
       }
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
+      // Handle both old and new API response formats
+      if (result.success !== false) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+        }
+        router.push('/dashboard');
+      } else {
+        setError(result.error || 'Authentication failed');
       }
-      router.push('/dashboard');
     } catch (err: any) {
-      setError(err.data?.error || err.message || 'Authentication failed');
+      // Handle RTK Query errors and direct API errors
+      const errorMessage = err.data?.error || err.data?.message || err.message || 'Authentication failed';
+      setError(errorMessage);
     }
   };
 

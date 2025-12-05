@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, Send, Wallet, Receipt, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Send, Wallet, Receipt, User, Settings, LogOut } from 'lucide-react';
 
 export function Sidebar() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export function Sidebar() {
     { icon: Send, label: 'Send Money', path: '/send' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
     { icon: Receipt, label: 'Transactions', path: '/transactions' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   const isActive = (path: string) => pathname === path;
@@ -66,7 +66,10 @@ export function Sidebar() {
           </div>
         </div>
         <button
-          onClick={() => router.push('/')}
+          onClick={() => {
+            localStorage.removeItem('token')
+            router.push('/')
+          }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <LogOut className="w-5 h-5" />

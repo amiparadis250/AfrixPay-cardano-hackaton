@@ -1,50 +1,81 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { ConfirmationModal } from './ConfirmationModal';
-import { ArrowRight, Info, Check } from 'lucide-react';
+import { ArrowRight, Info, Check, User } from 'lucide-react';
 
 export function SendMoney() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [recipientInfo, setRecipientInfo] = useState<{id: string, name: string, phone: string} | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    currency: 'KES',
-    recipientPhone: '',
-    recipientCurrency: 'RWF',
+    currency: 'ADA',
+    recipientAddress: '',
+    recipientCurrency: 'ADA',
   });
 
   const currencies = [
-    { code: 'KES', name: 'Kenyan Shilling', flag: '🇰🇪' },
-    { code: 'RWF', name: 'Rwandan Franc', flag: '🇷🇼' },
-    { code: 'UGX', name: 'Ugandan Shilling', flag: '🇺🇬' },
-    { code: 'TZS', name: 'Tanzanian Shilling', flag: '🇹🇿' },
-    { code: 'NGN', name: 'Nigerian Naira', flag: '🇳🇬' },
+    { code: 'ADA', name: 'Cardano', flag: '₳' },
   ];
 
-  const exchangeRate = 7.85; // KES to RWF
-  const feePercentage = 0.008; // 0.8%
+  const exchangeRate = 1; // ADA to ADA
+  const feePercentage = 0.002; // 0.2% for blockchain
   
   const amount = parseFloat(formData.amount) || 0;
   const fee = amount * feePercentage;
-  const amountReceived = amount * exchangeRate;
+  const amountReceived = amount - fee;
+
+  const lookupRecipient = async (address: string) => {
+    if (!address || address.length < 10) {
+      setRecipientInfo(null);
+      return;
+    }
+
+    setLookupLoading(true);
+    try {
+      const response = await fetch('/api/wallet/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+      });
+      const result = await response.json();
+      if (result.success) {
+        setRecipientInfo(result.data);
+      } else {
+        setRecipientInfo(null);
+      }
+    } catch (error) {
+      console.error('Lookup error:', error);
+      setRecipientInfo(null);
+    }
+    setLookupLoading(false);
+  };
 
   const handleConfirm = () => {
-    // Store transaction data in sessionStorage for Next.js
     sessionStorage.setItem('transactionData', JSON.stringify({
       amount: formData.amount,
       currency: formData.currency,
-      recipientPhone: formData.recipientPhone,
+      recipientAddress: formData.recipientAddress,
+      recipientName: recipientInfo?.name || 'Unknown User',
       recipientCurrency: formData.recipientCurrency,
-      amountReceived: amountReceived.toFixed(2),
-      fee: fee.toFixed(2),
+      amountReceived: amountReceived.toFixed(6),
+      fee: fee.toFixed(6),
     }));
     router.push('/success');
   };
 
-  const recipientDetected = formData.recipientPhone.length >= 10;
+  const recipientDetected = recipientInfo !== null;
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      lookupRecipient(formData.recipientAddress);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.recipientAddress]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -97,7 +128,7 @@ export function SendMoney() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-700">Exchange Rate</span>
                         <span className="text-sm text-[#0052FF]">
-                          1 {formData.currency} = {exchangeRate} {formData.recipientCurrency}
+                          1 {formData.currency} = {exchangeRate} {formData.recipientCurrency} (minus network fee)
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -112,15 +143,18 @@ export function SendMoney() {
                   {/* Recipient */}
                   <div>
                     <label className="block mb-2 text-sm text-gray-700">
-                      Recipient phone number
+                      Recipient Cardano Address
                     </label>
                     <input
-                      type="tel"
-                      placeholder="+250 700 000 000"
-                      value={formData.recipientPhone}
-                      onChange={(e) => setFormData({ ...formData, recipientPhone: e.target.value })}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent"
+                      type="text"
+                      placeholder="addr1q..."
+                      value={formData.recipientAddress}
+                      onChange={(e) => setFormData({ ...formData, recipientAddress: e.target.value })}
+                      className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0052FF] focus:border-transparent font-mono text-sm"
                     />
+                    {lookupLoading && (
+                      <div className="mt-2 text-sm text-gray-500">Looking up recipient...</div>
+                    )}
                   </div>
 
                   {/* Auto-detected Recipient */}
@@ -130,8 +164,19 @@ export function SendMoney() {
                         <Check className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
-                        <div className="text-sm text-gray-900">Sarah Nkunda</div>
-                        <div className="text-xs text-gray-600">MTN Mobile Money • Rwanda</div>
+                        <div className="text-sm text-gray-900">{recipientInfo.name}</div>
+                        <div className="text-xs text-gray-600">Cardano Wallet • {recipientInfo.phone || 'Verified User'}</div>
+                      </div>
+                    </div>
+                  )}
+                  {formData.recipientAddress && !recipientDetected && !lookupLoading && (
+                    <div className="flex items-center gap-3 p-4 border border-yellow-200 bg-yellow-50 rounded-xl">
+                      <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-full">
+                        <User className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-900">Unknown Recipient</div>
+                        <div className="text-xs text-gray-600">Address not registered in our system</div>
                       </div>
                     </div>
                   )}
@@ -169,7 +214,7 @@ export function SendMoney() {
                   <button
                     type="button"
                     onClick={() => setShowModal(true)}
-                    disabled={!amount || !recipientDetected}
+                    disabled={!amount || !formData.recipientAddress}
                     className="w-full py-4 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     Send Now
@@ -191,21 +236,21 @@ export function SendMoney() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Fee (0.8%)</span>
+                    <span className="text-sm text-gray-600">Network Fee (0.2%)</span>
                     <span className="text-sm text-gray-900">
-                      {amount > 0 ? `${fee.toFixed(2)} ${formData.currency}` : '—'}
+                      {amount > 0 ? `${fee.toFixed(6)} ${formData.currency}` : '—'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Exchange rate</span>
+                    <span className="text-sm text-gray-600">Recipient receives</span>
                     <span className="text-sm text-gray-900">
-                      1:{exchangeRate}
+                      {amount > 0 ? `${amountReceived.toFixed(6)} ${formData.currency}` : '—'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-3 mt-2">
-                    <span className="text-gray-900">Total to pay</span>
+                    <span className="text-gray-900">Total to send</span>
                     <span className="text-xl text-[#0052FF]">
-                      {amount > 0 ? `${(amount + fee).toFixed(2)} ${formData.currency}` : '—'}
+                      {amount > 0 ? `${amount.toFixed(6)} ${formData.currency}` : '—'}
                     </span>
                   </div>
                 </div>
@@ -238,12 +283,12 @@ export function SendMoney() {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onConfirm={handleConfirm}
-        recipient="Sarah Nkunda"
-        country="Rwanda"
-        amountSent={`${amount.toFixed(2)} ${formData.currency}`}
-        amountReceived={`${amountReceived.toFixed(2)} ${formData.recipientCurrency}`}
-        exchangeRate={`1 ${formData.currency} = ${exchangeRate} ${formData.recipientCurrency}`}
-        fee={`${fee.toFixed(2)} ${formData.currency}`}
+        recipient={recipientInfo?.name || 'Unknown User'}
+        country="Cardano Network"
+        amountSent={`${amount.toFixed(6)} ${formData.currency}`}
+        amountReceived={`${amountReceived.toFixed(6)} ${formData.recipientCurrency}`}
+        exchangeRate={`Network Fee: ${fee.toFixed(6)} ${formData.currency}`}
+        fee={`${fee.toFixed(6)} ${formData.currency}`}
       />
     </div>
   );
