@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, generateToken } from '@/lib/auth'
+import { generateWallet } from '@/lib/cardano'
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +47,8 @@ export async function POST(request: NextRequest) {
         wallet: {
           create: {
             balance: 0,
-            currency: currency || 'USD'
+            currency: currency || 'USD',
+            ...await generateWallet()
           }
         }
       },

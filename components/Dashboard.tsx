@@ -8,7 +8,8 @@ import { Send, Download, RefreshCw, Banknote, TrendingUp, ArrowUpRight, ArrowDow
 export function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [balance, setBalance] = useState('0.00');
+  const [adaBalance, setAdaBalance] = useState('0.00');
+  const [convertedBalance, setConvertedBalance] = useState('0.00');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,22 +26,63 @@ export function Dashboard() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
     
+    console.log('User data:', parsedUser);
     // Fetch wallet balance
     fetchBalance(token);
   }, [router]);
 
   const fetchBalance = async (token: string) => {
     try {
-      const response = await fetch('/api/wallet/balance', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const userData = localStorage.getItem('user');
+      const user = userData ? JSON.parse(userData) : null;
       
-      if (response.ok) {
-        const data = await response.json();
-        setBalance(data.balance);
+      if (user?.wallet?.cardanoAddress) {
+        // Update ADA balance in database first
+        const updateResponse = await fetch('/api/wallet/update-balance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ userId: user.id })
+        });
+        
+        // Update user data and set balance from response
+        if (updateResponse.ok) {
+          const updateResult = await updateResponse.json();
+          if (updateResult.data.cardanoAddress && !user.wallet.cardanoAddress) {
+            user.wallet.cardanoAddress = updateResult.data.cardanoAddress;
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+          setAdaBalance(parseFloat(updateResult.data.adaBalance).toFixed(2));
+          setConvertedBalance(updateResult.data.convertedAmount.toLocaleString());
+        }
+      } else {
+        // Generate wallet for existing user
+        const updateResponse = await fetch('/api/wallet/update-balance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ userId: user.id })
+        });
+        
+        if (updateResponse.ok) {
+          const updateResult = await updateResponse.json();
+          user.wallet.cardanoAddress = updateResult.data.cardanoAddress;
+          localStorage.setItem('user', JSON.stringify(user));
+          setAdaBalance(parseFloat(updateResult.data.adaBalance).toFixed(2));
+          setConvertedBalance(updateResult.data.convertedAmount.toLocaleString());
+        } else {
+          setAdaBalance('0.00');
+          setConvertedBalance('0.00');
+        }
       }
     } catch (error) {
       console.error('Failed to fetch balance:', error);
+      setAdaBalance('0.00');
+      setConvertedBalance('0.00');
     } finally {
       setLoading(false);
     }
@@ -110,7 +152,8 @@ export function Dashboard() {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <p className="text-blue-100 mb-2">Total Balance</p>
-                <div className="text-5xl mb-1">{user?.wallet?.currency || 'RWF'} {balance}</div>
+                <div className="text-5xl mb-1">{user?.wallet?.currency || 'USD'} {convertedBalance}</div>
+                <div className="text-sm text-blue-200 mb-1">{adaBalance} ADA</div>
                 <p className="text-blue-100">Wallet Balance</p>
               </div>
               <div className="bg-white/20 backdrop-blur px-4 py-2 rounded-lg flex items-center gap-2">

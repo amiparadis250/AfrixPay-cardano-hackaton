@@ -30,6 +30,15 @@ export function generateMnemonic(): string {
   return bip39.generateMnemonic(256)
 }
 
+export async function generateWallet() {
+  const walletInfo = await createWallet()
+  return {
+    cardanoAddress: walletInfo.address,
+    cardanoMnemonic: walletInfo.mnemonic,
+    cardanoPublicKey: walletInfo.publicKey
+  }
+}
+
 export async function createWallet(): Promise<WalletInfo> {
   const mnemonic = generateMnemonic()
   

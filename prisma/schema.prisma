@@ -28,6 +28,7 @@ model Wallet {
   id      String @id @default(cuid())
   userId  String @unique
   balance Decimal @default(0)
+  adaBalance Decimal @default(0)
   currency String @default("USD")
   
   // Cardano wallet fields
