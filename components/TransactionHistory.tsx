@@ -1,114 +1,77 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Search, Filter, Download, ArrowUpRight, ArrowDownRight, ChevronDown } from 'lucide-react';
 
 export function TransactionHistory() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
-  const transactions = [
-    {
-      id: 'TXN-2024-001',
-      type: 'sent',
-      recipient: 'Jane Kamau',
-      phone: '+254 712 345 678',
-      country: 'Kenya',
-      amount: '10,000 KES',
-      status: 'completed',
-      date: '2025-11-28',
-      time: '14:32',
-      reference: 'REF-KE-001',
-    },
-    {
-      id: 'TXN-2024-002',
-      type: 'received',
-      recipient: 'David Mutua',
-      phone: '+254 723 456 789',
-      country: 'Kenya',
-      amount: '5,000 KES',
-      status: 'completed',
-      date: '2025-11-27',
-      time: '09:15',
-      reference: 'REF-KE-002',
-    },
-    {
-      id: 'TXN-2024-003',
-      type: 'sent',
-      recipient: 'Sarah Nkunda',
-      phone: '+250 788 123 456',
-      country: 'Rwanda',
-      amount: '25,000 RWF',
-      status: 'completed',
-      date: '2025-11-26',
-      time: '16:45',
-      reference: 'REF-RW-003',
-    },
-    {
-      id: 'TXN-2024-004',
-      type: 'sent',
-      recipient: 'Peter Omondi',
-      phone: '+254 734 567 890',
-      country: 'Kenya',
-      amount: '15,000 KES',
-      status: 'pending',
-      date: '2025-11-26',
-      time: '11:20',
-      reference: 'REF-KE-004',
-    },
-    {
-      id: 'TXN-2024-005',
-      type: 'sent',
-      recipient: 'Grace Achieng',
-      phone: '+256 701 234 567',
-      country: 'Uganda',
-      amount: '50,000 UGX',
-      status: 'completed',
-      date: '2025-11-25',
-      time: '13:55',
-      reference: 'REF-UG-005',
-    },
-    {
-      id: 'TXN-2024-006',
-      type: 'received',
-      recipient: 'Michael Wanjiru',
-      phone: '+254 745 678 901',
-      country: 'Kenya',
-      amount: '8,500 KES',
-      status: 'completed',
-      date: '2025-11-24',
-      time: '10:30',
-      reference: 'REF-KE-006',
-    },
-    {
-      id: 'TXN-2024-007',
-      type: 'sent',
-      recipient: 'Emmanuel Okeke',
-      phone: '+234 803 456 7890',
-      country: 'Nigeria',
-      amount: '20,000 NGN',
-      status: 'failed',
-      date: '2025-11-23',
-      time: '15:10',
-      reference: 'REF-NG-007',
-    },
-    {
-      id: 'TXN-2024-008',
-      type: 'sent',
-      recipient: 'Amina Hassan',
-      phone: '+255 712 345 678',
-      country: 'Tanzania',
-      amount: '40,000 TZS',
-      status: 'completed',
-      date: '2025-11-22',
-      time: '08:45',
-      reference: 'REF-TZ-008',
-    },
-  ];
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (!userData || !token) {
+      router.push('/auth');
+      return;
+    }
 
-  const filteredTransactions = transactions.filter((transaction) => {
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    fetchTransactions(token);
+  }, [router]);
+
+  const fetchTransactions = async (token: string) => {
+    try {
+      const response = await fetch('/api/transactions/list', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setTransactions(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTransactions = () => {
+    return transactions.map(tx => {
+      const isSent = tx.senderId === user?.id;
+      const otherUser = isSent ? tx.receiver : tx.sender;
+      const name = otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : tx.receiverEmail;
+      
+      return {
+        id: tx.id,
+        type: isSent ? 'sent' : 'received',
+        recipient: name,
+        phone: otherUser?.phone || 'N/A',
+        amount: `${parseFloat(tx.amount).toFixed(2)} ${tx.currency}`,
+        status: tx.status.toLowerCase(),
+        date: new Date(tx.createdAt).toLocaleDateString(),
+        time: new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        reference: tx.transactionHash?.slice(0, 16) || tx.id.slice(0, 16)
+      };
+    });
+  };
+
+  const formattedTransactions = formatTransactions();
+
+  const filteredTransactions = formattedTransactions.filter((transaction) => {
     const matchesSearch =
       transaction.recipient.toLowerCase().includes(searchQuery.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -119,6 +82,14 @@ export function TransactionHistory() {
 
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -266,7 +237,7 @@ export function TransactionHistory() {
 
             {filteredTransactions.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-gray-500">No transactions found</p>
+                <p className="text-gray-500">{transactions.length === 0 ? 'No transactions yet' : 'No transactions found'}</p>
               </div>
             )}
           </div>
@@ -275,7 +246,7 @@ export function TransactionHistory() {
           {filteredTransactions.length > 0 && (
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Showing {filteredTransactions.length} of {transactions.length} transactions
+                Showing {filteredTransactions.length} of {formattedTransactions.length} transactions
               </p>
               <div className="flex items-center gap-2">
                 <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">

@@ -10,6 +10,8 @@ interface ConfirmationModalProps {
   amountReceived: string;
   exchangeRate: string;
   fee: string;
+  loading?: boolean;
+  error?: string;
 }
 
 export function ConfirmationModal({
@@ -22,6 +24,8 @@ export function ConfirmationModal({
   amountReceived,
   exchangeRate,
   fee,
+  loading = false,
+  error = '',
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -41,6 +45,12 @@ export function ConfirmationModal({
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-[#0052FF] flex-shrink-0 mt-0.5" />
             <p className="text-sm text-gray-700">
@@ -93,9 +103,13 @@ export function ConfirmationModal({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-6 py-3 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors"
+            disabled={loading}
+            className="flex-1 px-6 py-3 bg-[#0052FF] text-white rounded-lg hover:bg-[#0036C8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Confirm Transfer
+            {loading && (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {loading ? 'Sending...' : 'Confirm Transfer'}
           </button>
         </div>
       </div>

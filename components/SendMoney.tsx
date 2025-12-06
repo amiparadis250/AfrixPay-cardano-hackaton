@@ -11,6 +11,8 @@ export function SendMoney() {
   const [showModal, setShowModal] = useState(false);
   const [recipientInfo, setRecipientInfo] = useState<{id: string, name: string, phone: string} | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     amount: '',
     currency: 'ADA',
@@ -55,17 +57,64 @@ export function SendMoney() {
     setLookupLoading(false);
   };
 
-  const handleConfirm = () => {
-    sessionStorage.setItem('transactionData', JSON.stringify({
-      amount: formData.amount,
-      currency: formData.currency,
-      recipientAddress: formData.recipientAddress,
-      recipientName: recipientInfo?.name || 'Unknown User',
-      recipientCurrency: formData.recipientCurrency,
-      amountReceived: amountReceived.toFixed(6),
-      fee: fee.toFixed(6),
-    }));
-    router.push('/success');
+  const handleConfirm = async () => {
+    setSending(true);
+    setError('');
+    
+    try {
+      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (!userData || !token) {
+        router.push('/auth');
+        return;
+      }
+
+      const user = JSON.parse(userData);
+      const mnemonic = user.wallet?.cardanoMnemonic;
+      
+      if (!mnemonic) {
+        setError('Wallet not found');
+        setSending(false);
+        return;
+      }
+
+      const response = await fetch('/api/wallet/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          senderMnemonic: mnemonic,
+          receiverAddress: formData.recipientAddress,
+          amount: parseFloat(formData.amount)
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        sessionStorage.setItem('transactionData', JSON.stringify({
+          amount: formData.amount,
+          currency: formData.currency,
+          recipientAddress: formData.recipientAddress,
+          recipientName: recipientInfo?.name || 'Unknown User',
+          recipientCurrency: formData.recipientCurrency,
+          amountReceived: amountReceived.toFixed(6),
+          fee: fee.toFixed(6),
+          txHash: result.data.txHash,
+          explorerUrl: result.data.explorerUrl
+        }));
+        router.push('/success');
+      } else {
+        setError(result.error || 'Transaction failed');
+        setSending(false);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Transaction failed');
+      setSending(false);
+    }
   };
 
   const recipientDetected = recipientInfo !== null;
@@ -289,6 +338,8 @@ export function SendMoney() {
         amountReceived={`${amountReceived.toFixed(6)} ${formData.recipientCurrency}`}
         exchangeRate={`Network Fee: ${fee.toFixed(6)} ${formData.currency}`}
         fee={`${fee.toFixed(6)} ${formData.currency}`}
+        loading={sending}
+        error={error}
       />
     </div>
   );
